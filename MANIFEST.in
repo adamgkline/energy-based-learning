@@ -1,0 +1,13 @@
+include README.md
+include LICENSE
+include pyproject.toml
+recursive-include energy_based_learning *.py
+exclude *.pyc
+exclude */__pycache__
+exclude .DS_Store
+prune tests
+prune papers
+prune venv
+prune data
+prune outputs
+prune downsampled_mnist

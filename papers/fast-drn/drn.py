@@ -2,14 +2,14 @@ import argparse
 import numpy
 import torch
 
-from datasets import load_dataloaders
-from model.resistive.network import DeepResistiveEnergy
-from model.function.network import Network
-from model.function.cost import SquaredError
-from model.resistive.minimizer import QuadraticMinimizer
-from training.sgd import EquilibriumProp, Backprop, AugmentedFunction
-from training.epoch import Trainer, Evaluator
-from training.monitor import Monitor, Optimizer
+from energy_based_learning.datasets import load_dataloaders
+from energy_based_learning.model.resistive.network import DeepResistiveEnergy
+from energy_based_learning.model.function.network import Network
+from energy_based_learning.model.function.cost import SquaredError
+from energy_based_learning.model.resistive.minimizer import QuadraticMinimizer
+from energy_based_learning.training.sgd import EquilibriumProp, Backprop, AugmentedFunction
+from energy_based_learning.training.epoch import Trainer, Evaluator
+from energy_based_learning.training.monitor import Monitor, Optimizer
 
 parser = argparse.ArgumentParser(description='Deep Resistive Networks')
 parser.add_argument('--model', type = str, default = 'drn-1h', help="The DRN architecture: either 'drn-1h', 'drn-2h', 'drn-3h', 'drn-xs' or 'drn-xl'")

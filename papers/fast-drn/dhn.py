@@ -2,14 +2,14 @@ import argparse
 import numpy
 import torch
 
-from datasets import load_dataloaders
-from model.hopfield.network import DeepHopfieldEnergy
-from model.function.network import Network
-from model.function.cost import SquaredError
-from model.hopfield.minimizer import FixedPointMinimizer
-from training.sgd import EquilibriumProp, Backprop, AugmentedFunction
-from training.epoch import Trainer, Evaluator
-from training.monitor import Monitor, Optimizer
+from energy_based_learning.datasets import load_dataloaders
+from energy_based_learning.model.hopfield.network import DeepHopfieldEnergy
+from energy_based_learning.model.function.network import Network
+from energy_based_learning.model.function.cost import SquaredError
+from energy_based_learning.model.hopfield.minimizer import FixedPointMinimizer
+from energy_based_learning.training.sgd import EquilibriumProp, Backprop, AugmentedFunction
+from energy_based_learning.training.epoch import Trainer, Evaluator
+from energy_based_learning.training.monitor import Monitor, Optimizer
 
 parser = argparse.ArgumentParser(description='Deep Hopfield Networks')
 parser.add_argument('--model', type = str, default = 'dhn-1h', help="The DHN architecture: either 'dhn-1h', 'dhn-2h' or 'dhn-3h'")

@@ -1,3 +1,34 @@
+Metadata-Version: 2.4
+Name: energy-based-learning
+Version: 0.1.0
+Summary: Energy-based learning algorithms for analog computing
+Author-email: RAIN Neuromorphics <benjamin@rain.ai>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/rain-neuromorphics/energy-based-learning
+Project-URL: Repository, https://github.com/rain-neuromorphics/energy-based-learning
+Project-URL: Bug Tracker, https://github.com/rain-neuromorphics/energy-based-learning/issues
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: torch>=1.9.0
+Requires-Dist: torchvision>=0.10.0
+Requires-Dist: tensorboard>=2.5.0
+Requires-Dist: numpy>=1.19.0
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0; extra == "dev"
+Requires-Dist: pytest-cov>=2.10; extra == "dev"
+Dynamic: license-file
+
 # Energy-Based Learning Framework
 
 This repository aims at developing code for simulating energy-based systems and the training process of such systems using learning algorithms like equilibrium propagation. In particular, this repository contains the code to reproduce the results of the following papers:

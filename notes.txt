@@ -1,0 +1,122 @@
+Tasks:
+- Change sgd parameters to match coupled learning
+- Add CoupledLearning class to sgd.py
+	- Change
+- New cost function for coupled learning in cost.py
+- Need to update Optimizer?
+- Need to update Trainer?
+    - Currently assumes cost function. Can we just use power difference for cost?
+    - differentiator argument in constructor takes in EquilibriumProp or Backprop typically
+
+Optional tasks:
+- thin out argument structure?
+    - in training.monitor.Optimizer.__init__(), we see cost_fn.params() being brought in, but when does the cost function have params?
+    - where does augmented_fn actually enter training? trainer <- estimator <- augmented_fn
+        Trainer(differentiator=EquilibriumProp(energy_fn=augmented_fn))
+
+
+
+How does this even work?
+    
+    # model the network
+    energy_fn = DeepResistiveEnergy()       (Function.SumSeparableFunction)
+    network = Network(energy_fn)           
+        
+    # The cost function
+    cost_fn = SquaredError(output_layer)
+
+    # Thing we call to compute free nodes of network given inputs
+    energy_minimizer_inference = QuadraticMinimizer(energy_fn, free_layers)
+
+    # Thing we call to compute free nodes in nudged state during training
+    augmented_fn = AugmentedFunction(energy_fn, cost_fn)
+    energy_minimizer_training = QuadraticMinimizer(augmented_fn, free_layers)
+
+    # Way we estimate the gradient of the cost function for use in sgd later
+    estimator = EquilibriumProp(params, layers, augmented_fn, cost_fn, energy_minimizer_training)
+
+    # Interface for pytorch SGD
+    optimizer = Optimizer(energy_fn, cost_fn, learning_rates, momentum, weight_decay)
+    
+    # One-epoch steps for training and evaluating on test data, respectively
+    trainer = Trainer(network, cost_fn, params, training_loader, estimator, optimizer, energy_minimizer_inference) 
+    evaluator = Evaluator(network, cost_fn, test_loader, energy_minimizer_inference)
+    
+    monitor = Monitor(energy_fn, cost_fn, trainer, scheduler, evaluator, path)
+    
+    monitor.run() 
+
+
+
+Here, differentiator = estimator, for example EquilibriumProp or CoupledLearning
+
+epoch.Trainer.run():
+    for x, y in self._dataloader:
+        # inference (free phase relaxation)
+        self._network.set_input(x, reset=False)  # we set the input, and we let the state of the network where it was at the end of the previous batch
+        self._energy_minimizer.compute_equilibrium()  # we let the network settle to equilibrium (free state)
+        self._cost_fn.set_target(y)  # we present the correct (desired) output
+        self._do_measurements(0)  # we measure the statistics of the free state (energy value, cost value, error value, ...)
+
+        # training step
+        grads = self._differentiator.compute_gradient()  # compute the parameter gradients
+        for param, grad in zip(self._params, grads): param.state.grad = grad  # Set the gradients of the parameters 
+        self._do_measurements(1)  # measure the statistics of training
+        self._optimizer.step()  # perform one step of gradient descent on the parameters (of both the energy function E and the cost function C)
+        for param in self._params: param.clamp_()  # clamp the parameters' states in their range of permissible values, if adequate
+
+
+From sgd.EquilibriumProp:
+
+    def compute_gradient(self):
+        
+        ...
+
+        # First phase: compute the first equilibrium state of the layers
+        layers_free = [layer.state for layer in self._layers]  # hack: we store the `free state' (i.e. the equilibrium state of the layers with nudging=0)
+        self._augmented_fn.nudging = self._first_nudging
+        layers_first = self._energy_minimizer.compute_equilibrium()
+        
+        # Second phase: compute the second equilibrium state of the layers
+        for layer, state in zip(self._layers, layers_free): layer.state = state  # hack: we start the second phase from the `free state' again
+        self._augmented_fn.nudging = self._second_nudging
+        layers_second = self._energy_minimizer.compute_equilibrium()
+
+        ...        
+        
+        param_grads = self._standard_param_grads(layers_first, layers_second)
+
+        return param_grads + ...
+
+    def _standard_param_grads(self, layers_first, layers_second):
+        """Compute the parameter gradients using the standard EquilibriumProp formula
+
+        Args:
+            layers_first (dictionary of Tensors): the activations of the layers at the first state
+            layers_second (dictionary of Tensors): the activations of the layers at the second state
+
+        Returns:
+            param_grads: list of Tensors. The parameter gradients
+        """
+
+        # Compute the energy gradients of the first state
+        for layer in self._layers: layer.state = layers_first[layer.name]
+        grads_first = [updater.grad() for updater in self._param_updaters]
+
+        # Compute the energy gradients of the second state
+        for layer in self._layers: layer.state = layers_second[layer.name]
+        grads_second = [updater.grad() for updater in self._param_updaters]
+
+        # Compute the parameter gradients
+        param_grads = [(second - first) / (self._second_nudging - self._first_nudging) for first, second in zip(grads_first, grads_second)]
+
+        return param_grads
+
+
+
+
+
+- Function: 
+	- SumSeparableFunction
+		- DeepResistiveEnergy
+- Network: construction takes in a Function and adds some interfaces for it

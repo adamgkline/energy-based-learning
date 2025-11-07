@@ -1,14 +1,14 @@
 import argparse
 import torch
 
-from datasets import load_dataloaders
-from model.hopfield.network import ConvHopfieldEnergy32
-from model.function.network import Network
-from model.function.cost import SquaredError
-from model.hopfield.minimizer import FixedPointMinimizer
-from training.sgd import EquilibriumProp, AugmentedFunction
-from training.epoch import Trainer, Evaluator
-from training.monitor import Monitor, Optimizer
+from energy_based_learning.datasets import load_dataloaders
+from energy_based_learning.model.hopfield.network import ConvHopfieldEnergy32
+from energy_based_learning.model.function.network import Network
+from energy_based_learning.model.function.cost import SquaredError
+from energy_based_learning.model.hopfield.minimizer import FixedPointMinimizer
+from energy_based_learning.training.sgd import EquilibriumProp, AugmentedFunction
+from energy_based_learning.training.epoch import Trainer, Evaluator
+from energy_based_learning.training.monitor import Monitor, Optimizer
 
 parser = argparse.ArgumentParser(description='Simulation speedup of deep convolutional Hopfield networks')
 parser.add_argument('--32bit', dest='use32bit', action='store_true', help="Use 32 bit precision for the units and weights")
